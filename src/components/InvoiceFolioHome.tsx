@@ -9,6 +9,7 @@ import { PersonalEnvelope } from "./PersonalEnvelope";
 import { ContactBirdFlock } from "./ContactBirdFlock";
 // Temporarily hidden from the main view.
 // import { SuperrExperimentsCard } from "./superr-experiments/SuperrExperimentsCard";
+import { WallLightShader } from "./WallLightShader";
 import { ProjectBookshelf } from "./ProjectBookshelf";
 import { FolioProjectViewer } from "./FolioProjectViewer";
 import { SunlightPatchPill } from "./SunlightPatchPill";
@@ -277,6 +278,15 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
       inert={activeFolioProjectId ? true : undefined}
     >
       <div aria-hidden="true" className="folio-scroll-blur" />
+      <WallLightShader
+        blossom
+        paused={activeFolioProjectId !== null && !["superr-paper", "wizpay", "wiz-commerce", "journal-desk"].includes(activeFolioProjectId)}
+        glowColor="#ef96b7"
+        glowStrength={0}
+        lightColor="#ffe1bd"
+        reducedMotion={reducedMotion}
+        wallColor="#ffffff"
+      />
       <div className="folio-resume-sticker">
         <svg aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}>
           <defs>

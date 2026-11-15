@@ -86,11 +86,11 @@
 .project-bookshelf__stack li:has(:active) .project-spine__binding { transition-duration: 120ms; }
 .project-bookshelf__stack li { --tilt: 5deg; --pivot: right bottom; }
 .project-bookshelf__stack li:nth-child(odd) { --tilt: -5deg; --pivot: left bottom; }
-.project-bookshelf__stack li:nth-last-child(2) { --delay: 55ms; }
-.project-bookshelf__stack li:nth-last-child(3) { --delay: 110ms; }
-.project-bookshelf__stack li:nth-last-child(4) { --delay: 165ms; }
 @media (prefers-reduced-motion: no-preference) {
-  .project-bookshelf__stack[data-entered] .project-spine {
+  .project-bookshelf__stack[data-awaiting-entry] li:not([data-entered]):not(:focus-within) .project-spine {
+    opacity: 0;
+  }
+  .project-bookshelf__stack[data-awaiting-entry] li[data-entered] .project-spine {
     transform-origin: var(--pivot);
     animation: bookshelf-arrive 250ms linear var(--delay, 0ms) backwards,
       bookshelf-ink 400ms ease-in-out var(--delay, 0ms) backwards;

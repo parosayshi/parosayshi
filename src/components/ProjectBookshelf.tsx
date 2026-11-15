@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { folioProjects, type FolioProjectId } from "../data/folioProjects";
 import "../styles/project-bookshelf.css";
 
@@ -13,16 +13,50 @@ export function ProjectBookshelf({ onOpen }: {
   onOpen: (id: FolioProjectId, trigger: HTMLButtonElement) => void;
 }) {
   const stackRef = useRef<HTMLUListElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const stack = stackRef.current;
     if (!stack || !("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      stack.dataset.entered = "true";
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motion.matches) return;
+
+    const rows = Array.from(stack.children) as HTMLLIElement[];
+    let settling: Animation | undefined;
+    stack.dataset.awaitingEntry = "true";
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting)
+        .map(entry => entry.target as HTMLLIElement)
+        .sort((a, b) => rows.indexOf(a) - rows.indexOf(b));
+      if (!visible.length) return;
+      visible.forEach((row, index) => {
+        row.style.setProperty("--delay", `${(visible.length - index) * 50}ms`);
+        row.dataset.entered = "true";
+        observer.unobserve(row);
+      });
+
+      if (!settling) {
+        const landing = visible.length * 50;
+        const duration = landing + 1000;
+        const frames: Keyframe[] = visible.map((_, index) => ({
+          transform: `translateY(${index * 4}px)`, offset: index * 50 / duration,
+        }));
+        frames.push(
+          { transform: `translateY(${visible.length * 4 + 16}px)`, offset: landing / duration, easing: "cubic-bezier(.19,1,.22,1)" },
+          { transform: "none", offset: 1 },
+        );
+        settling = stack.animate(frames, { duration, delay: 250 });
+      }
+    }, { threshold: 0.05 });
+    rows.forEach(row => observer.observe(row));
+    const stop = () => {
       observer.disconnect();
-    });
-    observer.observe(stack);
-    return () => observer.disconnect();
+      settling?.cancel();
+      delete stack.dataset.awaitingEntry;
+    };
+    motion.addEventListener("change", stop);
+    return () => {
+      stop();
+      motion.removeEventListener("change", stop);
+    };
   }, []);
 
   return (

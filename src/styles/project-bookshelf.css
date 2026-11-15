@@ -3,24 +3,27 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  gap: 3px;
+  gap: 8px;
+  width: min(1244px, calc(100vw - 32px));
+  justify-self: center;
+  justify-items: center;
 }
 .project-bookshelf__stack li { position: relative; margin: 0; padding: 0; }
 .project-bookshelf__stack li:focus-within { z-index: 2; }
 [data-volume="superr-paper"] {
-  --cloth: #203cab; --foil: #fbf2c4; --height: 80px;
-  width: 92%; justify-self: center;
+  --cloth: #203cab; --foil: #fbf2c4; --height: 104px;
+  width: 86%;
 }
 [data-volume="wizpay"] {
-  --cloth: #e5e2cf; --foil: #243f34; --height: 72px;
-  width: 98%; justify-self: start;
+  --cloth: #e5e2cf; --foil: #243f34; --height: 184px;
+  width: 84%;
 }
 [data-volume="wiz-commerce"] {
-  --cloth: #773524; --foil: #fff1cf; --height: 84px;
-  width: 95%; justify-self: end;
+  --cloth: #773524; --foil: #fff1cf; --height: 72px;
+  width: 97%;
 }
 [data-volume="journal-desk"] {
-  --cloth: #2e4339; --foil: #fff3d1; --height: 70px;
+  --cloth: #2e4339; --foil: #fff3d1; --height: 152px;
   width: 100%;
 }
 .project-spine {
@@ -51,17 +54,6 @@
     repeating-linear-gradient(0deg, transparent 0 1px, #0000000a 1px 2px);
   transform-origin: center;
   pointer-events: none;
-  transition: transform 390ms cubic-bezier(.2,.78,.18,1), box-shadow 390ms;
-}
-.project-spine__binding::before {
-  content: "";
-  position: absolute;
-  inset: 0 1px auto;
-  height: 16px;
-  background: repeating-linear-gradient(0deg, #d3cabc 0 1px, #f6efdf 1px 2px);
-  border-top: 2px solid var(--cloth);
-  transform-origin: bottom;
-  transition: transform 390ms cubic-bezier(.2,.78,.18,1);
 }
 .project-spine__title {
   font: 600 clamp(26px, 3vw, 39px)/1.05 "Source Serif 4 Variable", Georgia, serif;
@@ -85,25 +77,46 @@
   width: 39px; height: 24px;
   background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 3px, currentColor 3px 6px, transparent 6px 8px, currentColor 8px 10px, transparent 10px 13px);
 }
-/* Keep the hit area on the shelf while the book advances toward the reader. */
-.project-spine:focus-visible {
-  --pull: translate3d(0, 7px, 43px) rotateX(-4deg);
-  --edge: translateY(-100%) scaleY(1);
-  --shadow: 0 13px 16px -5px #201a185e;
-}
-@media (hover: hover) and (pointer: fine) {
-  .project-bookshelf__stack li:hover { z-index: 3; }
-  .project-spine:hover {
-    --pull: translate3d(0, 7px, 43px) rotateX(-4deg);
-    --edge: translateY(-100%) scaleY(1);
-    --shadow: 0 13px 16px -5px #201a185e;
-  }
-}
+/* The stationary buttons own hit testing while the bindings move apart. */
 .project-spine__binding {
   transform: var(--pull, none);
-  box-shadow: inset 0 1px 0 #ffffff57, inset 0 -2px 1px #0003, var(--shadow, 1px 3px 4px #221c182e);
+  transition: transform 800ms cubic-bezier(.16,1,.3,1) 50ms;
+  box-shadow: inset 0 1px 0 #ffffff57, inset 0 -2px 1px #0003, 1px 3px 4px #221c182e;
 }
-.project-spine__binding::before { transform: var(--edge, translateY(-100%) scaleY(0)); }
+@media (hover: hover) and (pointer: fine) {
+  .project-bookshelf__stack li:has(~ li:hover) { --pull: translateY(-8px); }
+  .project-bookshelf__stack li:hover ~ li { --pull: translateY(8px); }
+  .project-bookshelf__stack li:hover { --pull: scale(1.05); z-index: 2; }
+}
+.project-bookshelf__stack li:has(~ li :focus-visible) { --pull: translateY(-8px); }
+.project-bookshelf__stack li:has(:focus-visible) ~ li { --pull: translateY(8px); }
+.project-spine:focus-visible { --pull: scale(1.05); }
+.project-spine:active { --pull: scale(.98); }
+.project-bookshelf__stack li:has(:active) { z-index: 2; }
+.project-bookshelf__stack li:has(:active) .project-spine__binding { transition-duration: 120ms; }
+.project-bookshelf__stack li { --tilt: 5deg; --pivot: right bottom; }
+.project-bookshelf__stack li:nth-child(odd) { --tilt: -5deg; --pivot: left bottom; }
+.project-bookshelf__stack li:nth-last-child(2) { --delay: 55ms; }
+.project-bookshelf__stack li:nth-last-child(3) { --delay: 110ms; }
+.project-bookshelf__stack li:nth-last-child(4) { --delay: 165ms; }
+@media (prefers-reduced-motion: no-preference) {
+  .project-bookshelf__stack[data-entered] .project-spine {
+    transform-origin: var(--pivot);
+    animation: bookshelf-arrive 250ms linear var(--delay, 0ms) backwards,
+      bookshelf-ink 400ms ease-in-out var(--delay, 0ms) backwards;
+  }
+}
+@keyframes bookshelf-arrive {
+  from { transform: translateY(-15vh) rotate(var(--tilt)); }
+  to { transform: none; }
+}
+@keyframes bookshelf-ink { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 767px) {
+  [data-volume="superr-paper"] { --height: 84px; width: 100%; }
+  [data-volume="wizpay"] { --height: 100px; width: 93%; }
+  [data-volume="wiz-commerce"] { --height: 75px; width: 90%; }
+  [data-volume="journal-desk"] { --height: 91px; width: 96%; }
+}
 @media (max-width: 600px) {
   .project-spine__binding { grid-template-columns: minmax(0, 1fr) 38px; gap: 4px 6px; padding: 12px 16px; }
   .project-spine__title { grid-column: 1; }
@@ -112,6 +125,5 @@
   [data-volume="journal-desk"] .project-spine__mark img { width: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .project-spine .project-spine__binding, .project-spine .project-spine__binding::before { transition: none; }
-  .project-spine:is(:hover, :focus-visible) .project-spine__binding { transform: none; }
+  .project-bookshelf__stack .project-spine__binding { transition: none; transform: none; }
 }

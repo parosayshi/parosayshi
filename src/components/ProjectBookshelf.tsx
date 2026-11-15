@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { folioProjects, type FolioProjectId } from "../data/folioProjects";
 import "../styles/project-bookshelf.css";
 
@@ -24,8 +25,21 @@ function SpineMark({ id }: { id: (typeof books)[number]["id"] }) {
 export function ProjectBookshelf({ onOpen }: {
   onOpen: (id: FolioProjectId, trigger: HTMLButtonElement) => void;
 }) {
+  const stackRef = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    const stack = stackRef.current;
+    if (!stack || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      stack.dataset.entered = "true";
+      observer.disconnect();
+    });
+    observer.observe(stack);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <ul className="project-bookshelf__stack">
+    <ul className="project-bookshelf__stack" ref={stackRef}>
       {books.map(({ id, subject }) => (
         <li key={id} data-volume={id}>
           <button

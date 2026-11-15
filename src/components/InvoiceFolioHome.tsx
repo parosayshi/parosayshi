@@ -486,6 +486,28 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
                 </filter>
               </defs>
             </svg>
+            <svg className="signature-daylight" viewBox="0 0 180 94" aria-hidden="true" focusable="false">
+              <defs>
+                <radialGradient id="signature-sun">
+                  <stop stopColor="#fff1cb" stopOpacity=".85" />
+                  <stop offset=".52" stopColor="#fff0ce" stopOpacity=".58" />
+                  <stop offset="1" stopColor="#fff1d5" stopOpacity="0" />
+                </radialGradient>
+                <filter id="signature-penumbra" x="-40%" y="-60%" width="180%" height="220%">
+                  <feGaussianBlur stdDeviation="4" />
+                </filter>
+                <mask id="signature-leaf-gap">
+                  <rect width="180" height="94" fill="white" />
+                  <g filter="url(#signature-penumbra)" fill="black">
+                    <path className="signature-daylight__near" d="M147 3 Q139 35 83 50 Q97 20 147 3Z" />
+                    <path className="signature-daylight__far" d="M153 60 Q128 34 82 58 Q113 75 153 60Z" />
+                  </g>
+                </mask>
+              </defs>
+              <g mask="url(#signature-leaf-gap)">
+                <ellipse cx="88" cy="47" rx="79" ry="28" transform="rotate(-16 88 47)" fill="url(#signature-sun)" />
+              </g>
+            </svg>
             <img
               alt="Parth's signature"
               className="wall-folio__signature"

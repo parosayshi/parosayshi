@@ -2572,6 +2572,31 @@ html:has(.invoice-folio--wall) { scroll-behavior: smooth; }
   pointer-events: none;
 }
 
+/* A gap between two leaves lets afternoon light fall beside the autograph. */
+.signature-daylight {
+  position: absolute;
+  bottom: -12px;
+  left: clamp(90px, 8vw, 132px);
+  width: clamp(116px, 11vw, 165px);
+  height: auto;
+  pointer-events: none;
+}
+.signature-daylight__near { transform-origin: 147px 3px; }
+.signature-daylight__far { transform-origin: 153px 60px; }
+@media (prefers-reduced-motion: no-preference) {
+  .signature-daylight__near { animation: signature-leaf-near 13s ease-in-out infinite; }
+  .signature-daylight__far { animation: signature-leaf-far 13s ease-in-out -.6s infinite; }
+}
+@keyframes signature-leaf-near {
+  0%, 40%, 100% { transform: rotate(-3deg); }
+  67% { transform: rotate(6deg); }
+}
+@keyframes signature-leaf-far {
+  0%, 40%, 100% { transform: rotate(2deg); }
+  67% { transform: rotate(-4deg); }
+}
+[data-wall-theme="night"] .signature-daylight { display: none; }
+
 .wall-folio__signature {
   display: block;
   width: clamp(93.5px, 7.744vw, 124.3px);

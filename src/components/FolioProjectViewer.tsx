@@ -18,35 +18,16 @@ import { FolioProjectAsset } from "./FolioProjectAsset";
 import type { FolioProject, FolioProjectMedia } from "../data/folioProjects";
 
 interface FolioProjectViewerProps {
-  openingSpine?: HTMLButtonElement | null;
   onClose: () => void;
   project: FolioProject;
   reducedMotion: boolean;
 }
 
-export function FolioProjectViewer({ onClose, openingSpine, project, reducedMotion }: FolioProjectViewerProps) {
+export function FolioProjectViewer({ onClose, project, reducedMotion }: FolioProjectViewerProps) {
   const [orgSlide, setOrgSlide] = useState(0);
   const [orgDirection, setOrgDirection] = useState(1);
   const navigateOrg = (direction: number) => { setOrgDirection(direction); setOrgSlide(value => (value + direction + 3) % 3); };
   const isPaper = project.id === "personal-letter" || project.id === "wizpay" || project.id === "superr-paper" || project.id === "wiz-commerce" || project.id === "journal-desk";
-  const paperRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const paper = paperRef.current;
-    if (!openingSpine || !paper || reducedMotion) return;
-
-    const spine = openingSpine.getBoundingClientRect();
-    const page = paper.getBoundingClientRect();
-    if (!page.width || !page.height) return;
-    const offsetX = spine.left + spine.width / 2 - page.left - page.width / 2;
-    const offsetY = spine.top + spine.height / 2 - page.top - page.height / 2;
-    const animation = paper.animate([
-      { transform: `translate(${offsetX}px, ${offsetY}px) scale(${spine.width / page.width}, ${spine.height / page.height})`, opacity: 0.25 },
-      { transform: "none", opacity: 1 },
-    ], { duration: 380, easing: "cubic-bezier(.2,.8,.2,1)" });
-    return () => animation.cancel();
-  }, [openingSpine, reducedMotion]);
-
   const heroDialogRef = useRef<HTMLDialogElement>(null);
   const heroButtonRef = useRef<HTMLButtonElement>(null);
   const expandedTriggerRef = useRef<HTMLElement | null>(null);
@@ -374,15 +355,14 @@ export function FolioProjectViewer({ onClose, openingSpine, project, reducedMoti
       <motion.div
         className="folio-reading-paper"
         data-present={isPresent}
-        ref={paperRef}
-        initial={isPaper && !reducedMotion && !openingSpine ? { y: "110vh", rotate: -10 } : false}
+        initial={isPaper && !reducedMotion ? { y: "110vh", rotate: -10 } : false}
         animate={isPaper ? { y: 0, rotate: 0 } : undefined}
         exit={isPaper && !reducedMotion ? {
           y: "110vh", rotate: -10,
           transition: { duration: 0.32, ease: [0.78, 0, 0.8, 0.22] },
         } : undefined}
         transition={{ duration: isPaper && !reducedMotion ? 0.44 : 0, ease: [0.2, 0.78, 0.22, 1] }}
-        style={isPaper ? { transformOrigin: openingSpine ? "center" : "50% 85%" } : undefined}
+        style={isPaper ? { transformOrigin: "50% 85%" } : undefined}
       >
         {isPaper && <div className="folio-reading-paper__cast-shadow" aria-hidden="true" />}
         {isPaper && <div className="folio-reading-paper__title" data-visible={showPaperTitle} aria-hidden="true">{project.id === "wiz-commerce" ? "WizCommerce - a collection" : project.title}</div>}
@@ -410,17 +390,23 @@ export function FolioProjectViewer({ onClose, openingSpine, project, reducedMoti
             {project.logo && project.id !== "wiz-commerce" && <img className="folio-reading-header__project-logo" src={project.logo} alt="" aria-hidden="true" />}
             <div><h1>{project.id === "personal-letter" ? <><del className="personal-letter__old-heading">Vibing is part of the process</del><span className="personal-letter__new-heading"><mark className="wizpay-outro-highlight">Vibing is the process</mark></span></> : project.headline ?? project.title}</h1>{project.id === "personal-letter" ? <p className="personal-letter__subtitle">A heart to heart from Parth</p> : project.id !== "wizpay" && <p className="folio-reading-header__date">{project.year}</p>}</div>
           </div> : <><h1>{project.title}</h1><p className="folio-reading-header__date">{project.year}</p></>}
-          {project.id === "superr-paper" ? <>
-            {project.description.split("\n\n").map(paragraph => <p key={paragraph}>{paragraph}</p>)}
-            <a className="folio-project-viewer__intro-link" href="https://x.com/superr_ai/status/2022163063542362244" target="_blank" rel="noreferrer" aria-label="Meet SuperrBook — watch the film">
-              <img className="folio-project-viewer__intro-thumbnail" src="/assets/invoice-folio/superr-case-study/intro-film-thumbnail.png" alt="" />
-              <span className="folio-project-viewer__intro-tooltip">Meet SuperrBook</span>
-              <img className="folio-project-viewer__intro-play" src="/assets/invoice-folio/superr-case-study/intro-film-play.svg" alt="" />
-            </a>
-            <ul className="folio-skill-grid" aria-label="Areas of contribution">
-              {project.services.map(skill => <li className="folio-skill-pill" key={skill}>{skill}</li>)}
-            </ul>
-          </> : project.id === "wiz-commerce" ? <>
+          {project.id === "superr-paper" ? project.description.split("\n\n").map((paragraph, index) => (
+            paragraph.startsWith("My work spans ") ? (
+              <Fragment key={index}>
+                <a className="folio-project-viewer__intro-link" href="https://x.com/superr_ai/status/2022163063542362244" target="_blank" rel="noreferrer" aria-label="Meet SuperrBook — watch the film">
+                  <img className="folio-project-viewer__intro-thumbnail" src="/assets/invoice-folio/superr-case-study/intro-film-thumbnail.png" alt="Meet SuperrBook" />
+                  <span className="folio-project-viewer__intro-tooltip">Meet SuperrBook</span>
+                  <img className="folio-project-viewer__intro-play" src="/assets/invoice-folio/superr-case-study/intro-film-play.svg" alt="" aria-hidden="true" />
+                </a>
+                <p>My work spans across</p>
+                <ul className="folio-skill-grid" aria-label="Areas of contribution">
+                  {["product design", "visual design", "animation", "AI-led frontend development"].map(skill => (
+                    <li className="folio-skill-pill" key={skill}>{skill}</li>
+                  ))}
+                </ul>
+              </Fragment>
+            ) : <p key={index} className={index === 1 ? "folio-project-viewer__contribution-copy" : undefined}>{paragraph.split(/(SuperrBoard to teachers|SuperrBook to students|traditional Indian classrooms)/g).map((part, partIndex) => ["SuperrBoard to teachers", "SuperrBook to students", "traditional Indian classrooms"].includes(part) ? <mark className="folio-text-highlight" key={partIndex}>{part}</mark> : part)}</p>
+          )) : project.id === "wiz-commerce" ? <>
             <p><a href="https://wizcommerce.com/" target="_blank" rel="noreferrer" className="wizpay-company-link wall-folio__experience-mark">WizCommerce</a> helps wholesalers and distributors manage rep-led, online, EDI, and marketplace sales in one platform, eliminate repetitive operational work, and grow revenue without increasing overhead.</p>
                 <p>Over the past 2 years, we’ve worked as a small, focused design team shaping WizCommerce into a full suite of tools for wholesale teams. It’s a lot of work to fit into one page.</p>
                 <p>This collection brings together systems and modules designed over that time. Behind these screens are conversations with the team, ideas we tried, and details we kept coming back to. We’ve picked a few to go deeper into and kept others brief.</p>

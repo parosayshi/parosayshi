@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { ArrowUpRightIcon } from "@phosphor-icons/react";
@@ -7,9 +7,12 @@ import { createPortal } from "react-dom";
 import { folioProjectOrder, folioProjects, type FolioProjectId } from "../data/folioProjects";
 import { PersonalEnvelope } from "./PersonalEnvelope";
 import { ContactBirdFlock } from "./ContactBirdFlock";
+// Temporarily hidden from the main view.
+// import { SuperrExperimentsCard } from "./superr-experiments/SuperrExperimentsCard";
 import { ProjectBookshelf } from "./ProjectBookshelf";
 import { FolioProjectViewer } from "./FolioProjectViewer";
 import { PaperSurface } from "./PaperSurface";
+import { SunlightPatchPill } from "./SunlightPatchPill";
 import { WallLightShader } from "./WallLightShader";
 import { trackEvent } from "../lib/analytics";
 
@@ -22,6 +25,13 @@ const RESUME_URL =
   "https://drive.google.com/file/d/1Hey3depw6La0gfbqJMN9uv8QBNtiF_qr/view?usp=drive_link";
 
 const WALL_THEME_STORAGE_KEY = "parosayshi:wall-theme:v1";
+const SHADOW_NOTES = [
+  "Paro says hi",
+  "Currently intentmaxxing",
+  "Vibing is part of the process",
+] as const;
+const SHADOW_NOTE_HOLD_TIMES = [8200, 11300, 9400] as const;
+
 type WallTheme = "day" | "evening" | "night";
 
 function getInitialWallTheme(): WallTheme {
@@ -31,6 +41,20 @@ function getInitialWallTheme(): WallTheme {
   } catch { /* Use daylight when storage is unavailable. */ }
   return "day";
 }
+
+const SHADOW_NOTE_VARIANTS: Variants = {
+  exit: {
+    filter: "blur(3.2px)",
+    opacity: 0,
+    transition: { duration: 1.08, ease: [0.4, 0, 0.6, 1] },
+  },
+  hidden: { filter: "blur(3.4px)", opacity: 0 },
+  visible: {
+    filter: "blur(0px)",
+    opacity: 1,
+    transition: { duration: 1.28, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 function getFolioProjectIdFromUrl(): FolioProjectId | null {
   if (typeof window === "undefined") return null;
@@ -114,12 +138,22 @@ function LiveIndiaWatch() {
 
 export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
   const [wallTheme] = useState<WallTheme>(getInitialWallTheme);
+  const [intentExpanded, setIntentExpanded] = useState(false);
+  const [designerExpanded, setDesignerExpanded] = useState(false);
   const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
+  const [emDashNoteVisible, setEmDashNoteVisible] = useState(false);
   const [experienceReceiptHeight, setExperienceReceiptHeight] = useState<number | null>(null);
+  const [promptNudgeActive, setPromptNudgeActive] = useState(false);
+  const [shadowNoteIndex, setShadowNoteIndex] = useState(0);
   const [activeFolioProjectId, setActiveFolioProjectId] = useState<FolioProjectId | null>(getFolioProjectIdFromUrl);
+  const emDashNoteTimerRef = useRef<number | undefined>(undefined);
   const folioProjectTriggerRef = useRef<HTMLButtonElement | null>(null);
   const lastFolioProjectIdRef = useRef<FolioProjectId | null>(activeFolioProjectId);
   const experienceReceiptContentRef = useRef<HTMLDivElement>(null);
+  const heroIntroBaselineHeightRef = useRef<number | null>(null);
+  const heroIntroRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const promptNudgeDelayRef = useRef(520);
   const experiencePlacementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -134,6 +168,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
     };
   }, [wallTheme]);
 
+  useEffect(() => () => window.clearTimeout(emDashNoteTimerRef.current), []);
 
   const restoreProjectTriggerFocus = useCallback(() => {
     window.requestAnimationFrame(() => {
@@ -158,6 +193,28 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
     return () => window.removeEventListener("popstate", syncProjectFromUrl);
   }, [restoreProjectTriggerFocus]);
 
+  useEffect(() => {
+    if (reducedMotion) return undefined;
+    const timer = window.setTimeout(
+      () => setPromptNudgeActive(true),
+      promptNudgeDelayRef.current,
+    );
+    return () => window.clearTimeout(timer);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setShadowNoteIndex(0);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(
+      () => setShadowNoteIndex((index) => (index + 1) % SHADOW_NOTES.length),
+      SHADOW_NOTE_HOLD_TIMES[shadowNoteIndex],
+    );
+    return () => window.clearTimeout(timer);
+  }, [reducedMotion, shadowNoteIndex]);
+
   useLayoutEffect(() => {
     const content = experienceReceiptContentRef.current;
     if (!content) return undefined;
@@ -168,6 +225,33 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
     observer.observe(content);
     return () => observer.disconnect();
   }, []);
+
+  useLayoutEffect(() => {
+    const hero = heroRef.current;
+    const intro = heroIntroRef.current;
+    if (!hero || !intro || intentExpanded || designerExpanded) return undefined;
+
+    const syncHeroFlow = () => {
+      const introHeight = intro.getBoundingClientRect().height;
+      if (heroIntroBaselineHeightRef.current === null || (!intentExpanded && !designerExpanded)) {
+        heroIntroBaselineHeightRef.current = introHeight;
+      }
+
+      const baselineHeight = heroIntroBaselineHeightRef.current;
+      hero.style.setProperty("--wall-intro-baseline-height", `${baselineHeight}px`);
+    };
+
+    const observer = new ResizeObserver(syncHeroFlow);
+    observer.observe(intro);
+    syncHeroFlow();
+    return () => observer.disconnect();
+  }, [designerExpanded, intentExpanded]);
+
+  const showEmDashNote = () => {
+    window.clearTimeout(emDashNoteTimerRef.current);
+    setEmDashNoteVisible(true);
+    emDashNoteTimerRef.current = window.setTimeout(() => setEmDashNoteVisible(false), 1800);
+  };
 
   const openFolioProject = (projectId: FolioProjectId, trigger: HTMLButtonElement) => {
     trackEvent("project_open", {
@@ -210,6 +294,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
       aria-hidden={activeFolioProjectId ? true : undefined}
       data-paper-open={activeFolioProjectId === "superr-paper" || activeFolioProjectId === "wizpay" || activeFolioProjectId === "wiz-commerce" || activeFolioProjectId === "journal-desk" || activeFolioProjectId === "personal-letter" ? "true" : undefined}
       className="invoice-folio invoice-folio--wall"
+      data-prompt-nudge={promptNudgeActive ? "true" : "false"}
       data-reduced-motion={reducedMotion ? "true" : "false"}
       data-wall-theme={wallTheme}
       inert={activeFolioProjectId ? true : undefined}
@@ -238,63 +323,181 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
         </a>
       </div>
 
-      <header className="shelf-intro" id="home">
-        <h1>Hi, I’m Parth. <img src="/assets/polaroid.jpeg" alt="" /></h1>
-        <p>I’m a product designer. I’ve designed tools for classrooms and wholesale teams, and lately I’ve been building things of my own.</p>
-        <svg aria-hidden="true" className="wall-folio__signature-filter" focusable="false">
-          <defs>
-            <filter
-              colorInterpolationFilters="sRGB"
-              height="120%"
-              id="signature-engraved"
-              width="120%"
-              x="-10%"
-              y="-10%"
-            >
-              <feFlood floodColor={wallTheme === "night" ? "#05080d" : "#242320"} floodOpacity="0.9" result="blackInk" />
-              <feComposite in="blackInk" in2="SourceAlpha" operator="in" result="blackSignature" />
+      <section
+        aria-label="Parosayshi introduction"
+        className="wall-folio wall-folio--hero"
+        data-designer-expanded={designerExpanded ? "true" : "false"}
+        data-intent-expanded={intentExpanded ? "true" : "false"}
+        id="home"
+        ref={heroRef}
+      >
+        <div className="wall-folio__hero-composition">
+          <div aria-hidden="true" className="wall-folio__grain" />
+          <p
+            aria-label={SHADOW_NOTES.join(". ")}
+            className="wall-folio__shadow-wordmark"
+          >
+            <AnimatePresence initial={false} mode="wait">
+              <motion.span
+                key={SHADOW_NOTES[shadowNoteIndex]}
+                aria-hidden="true"
+                animate="visible"
+                className="wall-folio__shadow-note-line"
+                exit="exit"
+                initial="hidden"
+                variants={SHADOW_NOTE_VARIANTS}
+              >
+                {SHADOW_NOTES[shadowNoteIndex]}
+              </motion.span>
+            </AnimatePresence>
+          </p>
+          <div
+            className="wall-folio__figma-intro"
+            data-node-id="73:1458"
+            ref={heroIntroRef}
+          >
+            <p>
+              <span className="wall-folio__figma-heading">
+                <strong>Hi, I am Parth</strong>
+                <span aria-hidden="true" className="wall-folio__figma-sticker">
+                  <img alt="" src="/assets/polaroid.jpeg" />
+                </span>
+              </span>
+              <span className="wall-folio__figma-body">
+                A{" "}
+                {designerExpanded ? (
+                  <span>designer</span>
+                ) : (
+                  <SunlightPatchPill
+                    ariaControls="designer-explanation"
+                    ariaExpanded={false}
+                    className="wall-folio__intent-trigger"
+                    label="designer"
+                    onClick={() => setDesignerExpanded(true)}
+                  />
+                )}{" "}
+                who believes{" "}
+                {intentExpanded ? (
+                  <span>intentmaxxing</span>
+                ) : (
+                  <SunlightPatchPill
+                    ariaControls="intentmaxxing-explanation"
+                    ariaExpanded={false}
+                    className="wall-folio__intent-trigger"
+                    label="intentmaxxing"
+                    onClick={() => setIntentExpanded(true)}
+                  />
+                )}{" "}
+                is the way to move forward in the coming times.
+              </span>
+            </p>
+            <div className="wall-folio__hero-details">
+              <motion.div
+                animate={{ height: intentExpanded ? "auto" : 0 }}
+                className="wall-folio__hero-detail-reveal"
+                data-expanded={intentExpanded ? "true" : "false"}
+                initial={false}
+                transition={reducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="wall-folio__hero-detail-reveal-clip">
+                  <motion.p
+                    animate={intentExpanded ? { filter: "blur(0px)", opacity: 1 } : { filter: "blur(12px)", opacity: 0 }}
+                    aria-hidden={!intentExpanded}
+                    className="wall-folio__intent-detail"
+                    id="intentmaxxing-explanation"
+                    initial={false}
+                    transition={reducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.58, 1] }}
+                  >
+                    I think <mark className="wall-folio__experience-mark">intention</mark> matters even more now that making things is getting easier. The web has enough noise. I want to build things that push back against it.
+                  </motion.p>
+                </div>
+              </motion.div>
+              <motion.div
+                animate={{ height: designerExpanded ? "auto" : 0 }}
+                className="wall-folio__hero-detail-reveal"
+                data-expanded={designerExpanded ? "true" : "false"}
+                initial={false}
+                transition={reducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="wall-folio__hero-detail-reveal-clip">
+                  <motion.div
+                    animate={designerExpanded ? { filter: "blur(0px)", opacity: 1 } : { filter: "blur(12px)", opacity: 0 }}
+                    aria-hidden={!designerExpanded}
+                    className="wall-folio__intent-detail"
+                    id="designer-explanation"
+                    initial={false}
+                    transition={reducedMotion ? { duration: 0 } : { duration: 0.7, ease: [0, 0, 0.58, 1] }}
+                  >
+                    <p>
+                      I’ve spent the last <a className="wall-folio__experience-mark wall-folio__experience-link" href="#resume" tabIndex={designerExpanded ? 0 : -1}>3 years</a> designing across <mark className="wall-folio__experience-mark wall-folio__experience-mark--green">Edtech</mark> and <mark className="wall-folio__experience-mark wall-folio__experience-mark--green">B2B SaaS</mark>, plus a small detour into <mark className="wall-folio__experience-mark wall-folio__experience-mark--green">Web3</mark>.
+                    </p>
+                    <p className="wall-folio__designer-recent">
+                      Lately, I’ve been using AI to take my designs into working products, getting closer to the code and the decisions that come with shipping.
+                    </p>
+                  </motion.div>
+                </div>
+              </motion.div>
+            </div>
+            <svg aria-hidden="true" className="wall-folio__signature-filter" focusable="false">
+              <defs>
+                <filter
+                  colorInterpolationFilters="sRGB"
+                  height="120%"
+                  id="signature-engraved"
+                  width="120%"
+                  x="-10%"
+                  y="-10%"
+                >
+                  <feFlood floodColor={wallTheme === "night" ? "#05080d" : "#242320"} floodOpacity="0.9" result="blackInk" />
+                  <feComposite in="blackInk" in2="SourceAlpha" operator="in" result="blackSignature" />
 
-              <feGaussianBlur in="SourceAlpha" result="softAlpha" stdDeviation="0.3" />
-              <feOffset dx="0.45" dy="1.1" in="softAlpha" result="raisedAlpha" />
-              <feComposite
-                in="SourceAlpha"
-                in2="raisedAlpha"
-                k2="1"
-                k3="-1"
-                operator="arithmetic"
-                result="lowerInnerEdge"
-              />
-              <feFlood floodColor={wallTheme === "night" ? "#010307" : "#090909"} floodOpacity="0.82" result="edgeLight" />
-              <feComposite in="edgeLight" in2="lowerInnerEdge" operator="in" result="engravedHighlight" />
+                  <feGaussianBlur in="SourceAlpha" result="softAlpha" stdDeviation="0.3" />
+                  <feOffset dx="0.45" dy="1.1" in="softAlpha" result="raisedAlpha" />
+                  <feComposite
+                    in="SourceAlpha"
+                    in2="raisedAlpha"
+                    k2="1"
+                    k3="-1"
+                    operator="arithmetic"
+                    result="lowerInnerEdge"
+                  />
+                  <feFlood floodColor={wallTheme === "night" ? "#010307" : "#090909"} floodOpacity="0.82" result="edgeLight" />
+                  <feComposite in="edgeLight" in2="lowerInnerEdge" operator="in" result="engravedHighlight" />
 
-              <feOffset dx="0.35" dy="1" in="SourceAlpha" result="rimOffset" />
-              <feComposite in="rimOffset" in2="SourceAlpha" operator="out" result="rimEdge" />
-              <feFlood floodColor={wallTheme === "night" ? "#a3b4cc" : "#fffaf1"} floodOpacity={wallTheme === "night" ? "0.2" : "0.8"} result="rimLight" />
-              <feComposite in="rimLight" in2="rimEdge" operator="in" result="litRim" />
+                  <feOffset dx="0.35" dy="1" in="SourceAlpha" result="rimOffset" />
+                  <feComposite in="rimOffset" in2="SourceAlpha" operator="out" result="rimEdge" />
+                  <feFlood floodColor={wallTheme === "night" ? "#a3b4cc" : "#fffaf1"} floodOpacity={wallTheme === "night" ? "0.2" : "0.8"} result="rimLight" />
+                  <feComposite in="rimLight" in2="rimEdge" operator="in" result="litRim" />
 
-              <feOffset dx="-0.25" dy="-0.65" in="SourceAlpha" result="innerLightOffset" />
-              <feComposite in="SourceAlpha" in2="innerLightOffset" operator="out" result="innerLightEdge" />
-              <feFlood floodColor="#ffffff" floodOpacity="0.28" result="innerLight" />
-              <feComposite in="innerLight" in2="innerLightEdge" operator="in" result="innerHighlight" />
+                  <feOffset dx="-0.25" dy="-0.65" in="SourceAlpha" result="innerLightOffset" />
+                  <feComposite in="SourceAlpha" in2="innerLightOffset" operator="out" result="innerLightEdge" />
+                  <feFlood floodColor="#ffffff" floodOpacity="0.28" result="innerLight" />
+                  <feComposite in="innerLight" in2="innerLightEdge" operator="in" result="innerHighlight" />
 
-              <feMerge>
-                <feMergeNode in="litRim" />
-                <feMergeNode in="blackSignature" />
-                <feMergeNode in="engravedHighlight" />
-                <feMergeNode in="innerHighlight" />
-              </feMerge>
-            </filter>
-          </defs>
-        </svg>
-        <img
-          alt="Parth's signature"
-          className="wall-folio__signature"
-          draggable={false}
-          src="/assets/parth-signature.png"
-        />
-      </header>
+                  <feMerge>
+                    <feMergeNode in="litRim" />
+                    <feMergeNode in="blackSignature" />
+                    <feMergeNode in="engravedHighlight" />
+                    <feMergeNode in="innerHighlight" />
+                  </feMerge>
+                </filter>
+              </defs>
+            </svg>
+            <img
+              alt="Parth's signature"
+              className="wall-folio__signature"
+              draggable={false}
+              src="/assets/parth-signature.png"
+            />
+          </div>
+        </div>
+      </section>
 
-      <ProjectBookshelf onOpen={openFolioProject} />
+      <section aria-label="Selected work" className="folio-projects-placeholder" id="work">
+        <div className="folio-projects-placeholder__grid">
+          <ProjectBookshelf onOpen={openFolioProject} />
+        </div>
+      </section>
 
       <section aria-labelledby="experience-receipt-title" className="folio-experience" id="resume">
         <motion.div
@@ -407,7 +610,6 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
         {activeFolioProjectId ? (
           <FolioProjectViewer
             key={activeFolioProjectId}
-            openingSpine={folioProjectTriggerRef.current?.dataset.folioProject === activeFolioProjectId ? folioProjectTriggerRef.current : null}
             onClose={closeFolioProject}
             project={folioProjects[activeFolioProjectId]}
             reducedMotion={reducedMotion}

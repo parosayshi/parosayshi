@@ -5991,15 +5991,15 @@ body.folio-project-viewer-open .folio-corner-menu { display: none; }
 }
 
 /* Fade homepage content alongside the paper entrance. */
-.invoice-folio > :is(section, .shelf-intro) {
+.invoice-folio > section {
   transition: opacity 400ms ease;
 }
-[data-paper-open="true"] > :is(section, .shelf-intro) {
+[data-paper-open="true"] > section {
   opacity: 0;
   transition: opacity 440ms ease;
 }
 @media (prefers-reduced-motion: reduce) {
-  .invoice-folio > :is(section, .shelf-intro) { transition: none; }
+  .invoice-folio > section { transition: none; }
 }
 
 /* Contact shadow appears only after the sheet has landed. */

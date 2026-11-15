@@ -147,6 +147,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
   const [shadowNoteIndex, setShadowNoteIndex] = useState(0);
   const [activeFolioProjectId, setActiveFolioProjectId] = useState<FolioProjectId | null>(getFolioProjectIdFromUrl);
   const emDashNoteTimerRef = useRef<number | undefined>(undefined);
+  const openingSpineRef = useRef<DOMRect | null>(null);
   const folioProjectTriggerRef = useRef<HTMLButtonElement | null>(null);
   const lastFolioProjectIdRef = useRef<FolioProjectId | null>(activeFolioProjectId);
   const experienceReceiptContentRef = useRef<HTMLDivElement>(null);
@@ -183,6 +184,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
 
   useEffect(() => {
     const syncProjectFromUrl = () => {
+      openingSpineRef.current = null;
       const nextProjectId = getFolioProjectIdFromUrl();
       if (nextProjectId) lastFolioProjectIdRef.current = nextProjectId;
       setActiveFolioProjectId(nextProjectId);
@@ -258,6 +260,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
       project_id: projectId,
       project_title: folioProjects[projectId].title,
     });
+    openingSpineRef.current = trigger.querySelector(".project-spine__binding")?.getBoundingClientRect() ?? null;
     folioProjectTriggerRef.current = trigger;
     lastFolioProjectIdRef.current = projectId;
     const nextUrl = new URL(window.location.href);
@@ -610,6 +613,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
         {activeFolioProjectId ? (
           <FolioProjectViewer
             key={activeFolioProjectId}
+            openingSpine={openingSpineRef.current}
             onClose={closeFolioProject}
             project={folioProjects[activeFolioProjectId]}
             reducedMotion={reducedMotion}

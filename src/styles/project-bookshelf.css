@@ -49,20 +49,19 @@
   background-image: linear-gradient(180deg, #ffffff24, transparent 12%, #00000008 72%, #00000025 98%),
     repeating-linear-gradient(94deg, transparent 0 2px, #ffffff09 2px 3px),
     repeating-linear-gradient(0deg, transparent 0 1px, #0000000a 1px 2px);
-  box-shadow: inset 0 1px 0 #ffffff57, inset 0 -2px 1px #0003, 1px 3px 4px #221c182e;
-  transform-origin: 50% 100%;
-  transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms;
+  transform-origin: center;
+  pointer-events: none;
+  transition: transform 390ms cubic-bezier(.2,.78,.18,1), box-shadow 390ms;
 }
 .project-spine__binding::before {
   content: "";
   position: absolute;
   inset: 0 1px auto;
-  height: 6px;
+  height: 16px;
   background: repeating-linear-gradient(0deg, #d3cabc 0 1px, #f6efdf 1px 2px);
   border-top: 2px solid var(--cloth);
   transform-origin: bottom;
-  transform: translateY(-100%) scaleY(0);
-  transition: transform 240ms;
+  transition: transform 390ms cubic-bezier(.2,.78,.18,1);
 }
 .project-spine__title {
   font: 600 clamp(26px, 3vw, 39px)/1.05 "Source Serif 4 Variable", Georgia, serif;
@@ -86,13 +85,25 @@
   width: 39px; height: 24px;
   background: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 3px, currentColor 3px 6px, transparent 6px 8px, currentColor 8px 10px, transparent 10px 13px);
 }
-@media (hover: hover) {
-  .project-bookshelf__stack li:hover { z-index: 2; }
-  .project-spine:hover .project-spine__binding { transform: translateY(-3px) rotateX(-5deg) scale(1.012); box-shadow: 1px 8px 10px #201a1833; }
-  .project-spine:hover .project-spine__binding::before { transform: translateY(-100%); }
+/* Keep the hit area on the shelf while the book advances toward the reader. */
+.project-spine:focus-visible {
+  --pull: translate3d(0, 7px, 43px) rotateX(-4deg);
+  --edge: translateY(-100%) scaleY(1);
+  --shadow: 0 13px 16px -5px #201a185e;
 }
-.project-spine:focus-visible .project-spine__binding { transform: translateY(-3px) rotateX(-5deg) scale(1.012); }
-.project-spine:focus-visible .project-spine__binding::before { transform: translateY(-100%); }
+@media (hover: hover) and (pointer: fine) {
+  .project-bookshelf__stack li:hover { z-index: 3; }
+  .project-spine:hover {
+    --pull: translate3d(0, 7px, 43px) rotateX(-4deg);
+    --edge: translateY(-100%) scaleY(1);
+    --shadow: 0 13px 16px -5px #201a185e;
+  }
+}
+.project-spine__binding {
+  transform: var(--pull, none);
+  box-shadow: inset 0 1px 0 #ffffff57, inset 0 -2px 1px #0003, var(--shadow, 1px 3px 4px #221c182e);
+}
+.project-spine__binding::before { transform: var(--edge, translateY(-100%) scaleY(0)); }
 @media (max-width: 600px) {
   .project-spine__binding { grid-template-columns: minmax(0, 1fr) 38px; gap: 4px 6px; padding: 12px 16px; }
   .project-spine__title { grid-column: 1; }

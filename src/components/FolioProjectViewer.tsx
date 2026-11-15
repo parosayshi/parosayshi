@@ -18,16 +18,39 @@ import { FolioProjectAsset } from "./FolioProjectAsset";
 import type { FolioProject, FolioProjectMedia } from "../data/folioProjects";
 
 interface FolioProjectViewerProps {
+  openingSpine?: DOMRect | null;
   onClose: () => void;
   project: FolioProject;
   reducedMotion: boolean;
 }
 
-export function FolioProjectViewer({ onClose, project, reducedMotion }: FolioProjectViewerProps) {
+export function FolioProjectViewer({ onClose, openingSpine, project, reducedMotion }: FolioProjectViewerProps) {
   const [orgSlide, setOrgSlide] = useState(0);
   const [orgDirection, setOrgDirection] = useState(1);
   const navigateOrg = (direction: number) => { setOrgDirection(direction); setOrgSlide(value => (value + direction + 3) % 3); };
   const isPaper = project.id === "personal-letter" || project.id === "wizpay" || project.id === "superr-paper" || project.id === "wiz-commerce" || project.id === "journal-desk";
+  const paperRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const paper = paperRef.current;
+    if (!openingSpine || !paper || reducedMotion) return;
+    const page = paper.getBoundingClientRect();
+    if (!page.height || !page.width) return;
+
+    // Reveal the sheet from the selected binding, keeping the printed text undistorted.
+    const scale = openingSpine.width / page.width;
+    const foldedHeight = Math.min(page.height, openingSpine.height / scale);
+    const x = openingSpine.left - page.left;
+    const y = openingSpine.top - page.top;
+    const opening = paper.animate([
+      {
+        transform: `translate(${x}px, ${y}px) scale(${scale})`,
+        clipPath: `inset(0 0 ${page.height - foldedHeight}px 0 round 4px)`,
+      },
+      { transform: "none", clipPath: "inset(0 0 0 0 round 0px)" },
+    ], { duration: 510, easing: "cubic-bezier(.22,.78,.18,1)" });
+    return () => opening.cancel();
+  }, [openingSpine, reducedMotion]);
+
   const heroDialogRef = useRef<HTMLDialogElement>(null);
   const heroButtonRef = useRef<HTMLButtonElement>(null);
   const expandedTriggerRef = useRef<HTMLElement | null>(null);
@@ -355,14 +378,15 @@ export function FolioProjectViewer({ onClose, project, reducedMotion }: FolioPro
       <motion.div
         className="folio-reading-paper"
         data-present={isPresent}
-        initial={isPaper && !reducedMotion ? { y: "110vh", rotate: -10 } : false}
+        ref={paperRef}
+        initial={isPaper && !reducedMotion && !openingSpine ? { y: "110vh", rotate: -10 } : false}
         animate={isPaper ? { y: 0, rotate: 0 } : undefined}
         exit={isPaper && !reducedMotion ? {
           y: "110vh", rotate: -10,
           transition: { duration: 0.32, ease: [0.78, 0, 0.8, 0.22] },
         } : undefined}
         transition={{ duration: isPaper && !reducedMotion ? 0.44 : 0, ease: [0.2, 0.78, 0.22, 1] }}
-        style={isPaper ? { transformOrigin: "50% 85%" } : undefined}
+        style={isPaper ? { transformOrigin: openingSpine && isPresent ? "top left" : "50% 85%" } : undefined}
       >
         {isPaper && <div className="folio-reading-paper__cast-shadow" aria-hidden="true" />}
         {isPaper && <div className="folio-reading-paper__title" data-visible={showPaperTitle} aria-hidden="true">{project.id === "wiz-commerce" ? "WizCommerce - a collection" : project.title}</div>}

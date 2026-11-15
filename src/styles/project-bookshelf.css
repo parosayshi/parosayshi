@@ -12,6 +12,7 @@
 .project-bookshelf__stack li:focus-within { z-index: 2; }
 [data-volume="superr-paper"] {
   --spine-color: #5032f6; --spine-ink: #ffffff; --height: 104px;
+  --logo-size: 60px;
   width: 86%;
 }
 [data-volume="wizpay"] {
@@ -24,6 +25,7 @@
 }
 [data-volume="journal-desk"] {
   --spine-color: #ff99ce; --spine-ink: #321229; --height: 152px;
+  --logo-size: 60px;
   width: 100%;
 }
 .project-spine {
@@ -56,9 +58,33 @@
   grid-column: 2;
   grid-row: 1;
   width: auto;
-  height: calc(var(--height) - 24px);
+  height: var(--logo-size, 44px);
   max-width: 36vw;
   object-fit: contain;
+}
+.project-spine__payment-preview {
+  position: absolute;
+  bottom: calc(100% - 2px);
+  left: 50%;
+  width: min(260px, 78%);
+  height: auto;
+  border-radius: 5px 5px 0 0;
+  opacity: 0;
+  transform: translate(-50%, 9px);
+  clip-path: inset(100% 0 0);
+  transition: clip-path 260ms ease, transform 260ms ease, opacity 200ms ease;
+}
+.project-spine:focus-visible .project-spine__payment-preview {
+  clip-path: inset(0); transform: translate(-50%, 0); opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .project-spine:hover .project-spine__payment-preview {
+    clip-path: inset(0); transform: translate(-50%, 0); opacity: 1;
+    transition-delay: 130ms;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-spine__payment-preview { transition: none; }
 }
 .project-spine__subject {
   grid-column: 1;

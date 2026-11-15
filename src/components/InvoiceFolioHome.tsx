@@ -11,9 +11,7 @@ import { ContactBirdFlock } from "./ContactBirdFlock";
 // import { SuperrExperimentsCard } from "./superr-experiments/SuperrExperimentsCard";
 import { ProjectBookshelf } from "./ProjectBookshelf";
 import { FolioProjectViewer } from "./FolioProjectViewer";
-import { PaperSurface } from "./PaperSurface";
 import { SunlightPatchPill } from "./SunlightPatchPill";
-import { WallLightShader } from "./WallLightShader";
 import { trackEvent } from "../lib/analytics";
 
 interface InvoiceFolioHomeProps {
@@ -24,23 +22,12 @@ interface InvoiceFolioHomeProps {
 const RESUME_URL =
   "https://drive.google.com/file/d/1Hey3depw6La0gfbqJMN9uv8QBNtiF_qr/view?usp=drive_link";
 
-const WALL_THEME_STORAGE_KEY = "parosayshi:wall-theme:v1";
 const SHADOW_NOTES = [
   "Paro says hi",
   "Currently intentmaxxing",
   "Vibing is part of the process",
 ] as const;
 const SHADOW_NOTE_HOLD_TIMES = [8200, 11300, 9400] as const;
-
-type WallTheme = "day" | "evening" | "night";
-
-function getInitialWallTheme(): WallTheme {
-  try {
-    const saved = window.localStorage.getItem(WALL_THEME_STORAGE_KEY);
-    if (saved === "day" || saved === "evening" || saved === "night") return saved;
-  } catch { /* Use daylight when storage is unavailable. */ }
-  return "day";
-}
 
 const SHADOW_NOTE_VARIANTS: Variants = {
   exit: {
@@ -137,7 +124,6 @@ function LiveIndiaWatch() {
 }
 
 export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
-  const [wallTheme] = useState<WallTheme>(getInitialWallTheme);
   const [intentExpanded, setIntentExpanded] = useState(false);
   const [designerExpanded, setDesignerExpanded] = useState(false);
   const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
@@ -156,18 +142,6 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
   const heroRef = useRef<HTMLElement>(null);
   const promptNudgeDelayRef = useRef(520);
   const experiencePlacementRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    document.body.dataset.wallTheme = wallTheme;
-    try {
-      window.localStorage.setItem(WALL_THEME_STORAGE_KEY, wallTheme);
-    } catch {
-      // Theme changes remain available without persistence.
-    }
-    return () => {
-      delete document.body.dataset.wallTheme;
-    };
-  }, [wallTheme]);
 
   useEffect(() => () => window.clearTimeout(emDashNoteTimerRef.current), []);
 
@@ -299,20 +273,10 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
       className="invoice-folio invoice-folio--wall"
       data-prompt-nudge={promptNudgeActive ? "true" : "false"}
       data-reduced-motion={reducedMotion ? "true" : "false"}
-      data-wall-theme={wallTheme}
+      data-wall-theme="day"
       inert={activeFolioProjectId ? true : undefined}
     >
       <div aria-hidden="true" className="folio-scroll-blur" />
-      <WallLightShader
-        blossom
-        paused={activeFolioProjectId !== null && activeFolioProjectId !== "superr-paper" && activeFolioProjectId !== "wizpay" && activeFolioProjectId !== "wiz-commerce" && activeFolioProjectId !== "journal-desk"}
-        glowColor={wallTheme === "night" ? "#b38bae" : "#ef96b7"}
-        glowStrength={0}
-        lightColor={wallTheme === "night" ? "#dbc9e7" : "#ffe1bd"}
-        reducedMotion={reducedMotion}
-        wallColor={wallTheme === "night" ? "#0b0f18" : wallTheme === "evening" ? "#f0c7b1" : "#fffaf7"}
-      />
-      <PaperSurface />
       <div className="folio-resume-sticker">
         <svg aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}>
           <defs>
@@ -335,7 +299,6 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
         ref={heroRef}
       >
         <div className="wall-folio__hero-composition">
-          <div aria-hidden="true" className="wall-folio__grain" />
           <p
             aria-label={SHADOW_NOTES.join(". ")}
             className="wall-folio__shadow-wordmark"
@@ -451,7 +414,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
                   x="-10%"
                   y="-10%"
                 >
-                  <feFlood floodColor={wallTheme === "night" ? "#05080d" : "#242320"} floodOpacity="0.9" result="blackInk" />
+                  <feFlood floodColor="#242320" floodOpacity="0.9" result="blackInk" />
                   <feComposite in="blackInk" in2="SourceAlpha" operator="in" result="blackSignature" />
 
                   <feGaussianBlur in="SourceAlpha" result="softAlpha" stdDeviation="0.3" />
@@ -464,12 +427,12 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
                     operator="arithmetic"
                     result="lowerInnerEdge"
                   />
-                  <feFlood floodColor={wallTheme === "night" ? "#010307" : "#090909"} floodOpacity="0.82" result="edgeLight" />
+                  <feFlood floodColor="#090909" floodOpacity="0.82" result="edgeLight" />
                   <feComposite in="edgeLight" in2="lowerInnerEdge" operator="in" result="engravedHighlight" />
 
                   <feOffset dx="0.35" dy="1" in="SourceAlpha" result="rimOffset" />
                   <feComposite in="rimOffset" in2="SourceAlpha" operator="out" result="rimEdge" />
-                  <feFlood floodColor={wallTheme === "night" ? "#a3b4cc" : "#fffaf1"} floodOpacity={wallTheme === "night" ? "0.2" : "0.8"} result="rimLight" />
+                  <feFlood floodColor="#fffaf1" floodOpacity="0.8" result="rimLight" />
                   <feComposite in="rimLight" in2="rimEdge" operator="in" result="litRim" />
 
                   <feOffset dx="-0.25" dy="-0.65" in="SourceAlpha" result="innerLightOffset" />
@@ -485,28 +448,6 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
                   </feMerge>
                 </filter>
               </defs>
-            </svg>
-            <svg className="signature-daylight" viewBox="0 0 180 94" aria-hidden="true" focusable="false">
-              <defs>
-                <radialGradient id="signature-sun">
-                  <stop stopColor="#fff1cb" stopOpacity=".85" />
-                  <stop offset=".52" stopColor="#fff0ce" stopOpacity=".58" />
-                  <stop offset="1" stopColor="#fff1d5" stopOpacity="0" />
-                </radialGradient>
-                <filter id="signature-penumbra" x="-40%" y="-60%" width="180%" height="220%">
-                  <feGaussianBlur stdDeviation="4" />
-                </filter>
-                <mask id="signature-leaf-gap">
-                  <rect width="180" height="94" fill="white" />
-                  <g filter="url(#signature-penumbra)" fill="black">
-                    <path className="signature-daylight__near" d="M147 3 Q139 35 83 50 Q97 20 147 3Z" />
-                    <path className="signature-daylight__far" d="M153 60 Q128 34 82 58 Q113 75 153 60Z" />
-                  </g>
-                </mask>
-              </defs>
-              <g mask="url(#signature-leaf-gap)">
-                <ellipse cx="88" cy="47" rx="79" ry="28" transform="rotate(-16 88 47)" fill="url(#signature-sun)" />
-              </g>
             </svg>
             <img
               alt="Parth's signature"
@@ -627,7 +568,7 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
         className="folio-contact"
         id="contact"
       >
-        <ContactBirdFlock reducedMotion={reducedMotion} theme={wallTheme === "night" ? "night" : "day"} />
+        <ContactBirdFlock reducedMotion={reducedMotion} theme="day" />
       </motion.section>
     </main>
     {typeof document !== "undefined" ? createPortal(

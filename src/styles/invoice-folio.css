@@ -1951,20 +1951,11 @@ body:has(.invoice-folio--dark),
 body:has(.invoice-folio--wall),
 #root:has(.invoice-folio--wall),
 .archive-garden-scene:has(.invoice-folio--wall) {
-  --wall-color: #fffaf7;
+  --wall-color: #fff;
   min-height: 100%;
   overflow-x: clip;
   overflow-y: visible;
-  background: transparent;
-  mix-blend-mode: multiply;
-  transition: background-color 640ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-:root:has(.invoice-folio--wall[data-wall-theme="night"]),
-body:has(.invoice-folio--wall[data-wall-theme="night"]),
-#root:has(.invoice-folio--wall[data-wall-theme="night"]),
-.archive-garden-scene:has(.invoice-folio--wall[data-wall-theme="night"]) {
-  --wall-color: #0b0f18;
+  background: var(--wall-color);
 }
 
 html:has(.invoice-folio--wall) { scroll-behavior: smooth; }
@@ -2571,31 +2562,6 @@ html:has(.invoice-folio--wall) { scroll-behavior: smooth; }
   overflow: hidden;
   pointer-events: none;
 }
-
-/* A gap between two leaves lets afternoon light fall beside the autograph. */
-.signature-daylight {
-  position: absolute;
-  bottom: -12px;
-  left: clamp(90px, 8vw, 132px);
-  width: clamp(116px, 11vw, 165px);
-  height: auto;
-  pointer-events: none;
-}
-.signature-daylight__near { transform-origin: 147px 3px; }
-.signature-daylight__far { transform-origin: 153px 60px; }
-@media (prefers-reduced-motion: no-preference) {
-  .signature-daylight__near { animation: signature-leaf-near 13s ease-in-out infinite; }
-  .signature-daylight__far { animation: signature-leaf-far 13s ease-in-out -.6s infinite; }
-}
-@keyframes signature-leaf-near {
-  0%, 40%, 100% { transform: rotate(-3deg); }
-  67% { transform: rotate(6deg); }
-}
-@keyframes signature-leaf-far {
-  0%, 40%, 100% { transform: rotate(2deg); }
-  67% { transform: rotate(-4deg); }
-}
-[data-wall-theme="night"] .signature-daylight { display: none; }
 
 .wall-folio__signature {
   display: block;

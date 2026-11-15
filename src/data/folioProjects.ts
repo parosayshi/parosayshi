@@ -113,7 +113,8 @@ const superrStory = [
   {
     id: "intro",
     kind: "group",
-    heading: "Meet SuperrBook",
+    heading: "A lesson on SuperrBook",
+    description: "An activity gives a student something to do at their desk while a teacher leads the lesson. The crossword is one example of how a classroom topic could become something students could work through themselves.",
     media: [
       { ariaLabel: "Reasons to love SuperrBook", aspectRatio: "1080 / 1536", background: "#fffcf8", fit: "contain", kind: "video", poster: "/assets/invoice-folio/superr-case-study/creation-scene-4-poster.jpg", ratio: "landscape", src: "/assets/invoice-folio/superr-case-study/creation-scene-4.mp4" },
       { presentation: "activity-section", ariaLabel: "SuperrBook interactive crossword activity", aspectRatio: "16 / 9", background: "#000000", fit: "contain", kind: "video", poster: "/assets/invoice-folio/superr-case-study/activity-poster.jpg", ratio: "landscape", src: "/assets/invoice-folio/superr-case-study/activity.mp4" },
@@ -122,7 +123,8 @@ const superrStory = [
   {
     id: "search",
     kind: "group",
-    heading: "",
+    heading: "Finding a lesson again",
+    description: "A student might remember the topic but forget where they saw it. Searching for photosynthesis brought handwritten notes, library material and Superr Chat results into one place.",
     media: [
       { ariaLabel: "Superr notebook and folder animation", playbackRate: 0.7, aspectRatio: "2 / 1", background: "#fffbf7", fit: "cover", kind: "video", position: "center", poster: "/assets/invoice-folio/superr-case-study/notebook-flipbook-cream-poster.png", ratio: "landscape", src: "/assets/invoice-folio/superr-case-study/notebook-flipbook-cream.mp4" },
       { alt: "Superr My Notes library with colorful notebooks and folders", aspectRatio: "728 / 809", background: "#fffcf8", fit: "contain", kind: "image", ratio: "portrait", src: "/assets/invoice-folio/superr-case-study/figma-frame-1.png" },
@@ -135,7 +137,7 @@ const superrStory = [
   {
     id: "profiles",
     kind: "group",
-    heading: "",
+    heading: "Making the notebook their own",
     media: [
       { caption: "A little personality for every learner", ariaLabel: "Animated profile icons designed for kids", aspectRatio: "2 / 1", background: "#ffffff", fit: "contain", kind: "video", poster: "/assets/invoice-folio/superr-case-study/pfp-pop-loop-v3-poster.png", ratio: "landscape", src: "/assets/invoice-folio/superr-case-study/pfp-pop-loop-v4.mp4" },
       { alt: "SuperrBook cover selection with a personalized notebook and thirteen cover options", aspectRatio: "1440 / 904", fit: "contain", kind: "image", ratio: "landscape", src: "/assets/invoice-folio/superr-case-study/superr-website-figma-8404-17805.png" },
@@ -144,7 +146,7 @@ const superrStory = [
   {
     id: "details",
     kind: "group",
-    heading: "",
+    heading: "Small details across Superr",
     media: [
       { alt: "Sketch your day calendar design with a yellow February page, hand-drawn flowers, and colourful stacked sheets", aspectRatio: "1456 / 2322", fit: "contain", kind: "image", ratio: "portrait", src: "/assets/invoice-folio/superr-case-study/superr-figma-211-2908-v2.png" },
       { alt: "Superr cookie banner with a bitten cookie illustration, playful copy, and Reject and Accept buttons", aspectRatio: "728 / 382", fit: "contain", kind: "image", ratio: "landscape", src: "/assets/invoice-folio/superr-case-study/superr-figma-150-3132.png" },
@@ -320,16 +322,13 @@ export const folioProjects: Record<FolioProjectId, FolioProject> = {
     id: "superr-paper",
     cardTitle: "Superr — paper version",
     cardMeta: "Paper case study / Preview",
-    overview: {
-      context: superrProject.description.split("\n\n")[0],
-      contribution: superrProject.description.split("\n\n").slice(1).join("\n\n"),
-      facts: [],
-    },
+    services: ["Product design", "Visual design", "Animation", "AI-led frontend development"],
+    description: "At Superr, we designed for two people in the same classroom. Teachers had SuperrBoard at the front of the room. Students had SuperrBook on their desks, where they could work through an activity or write notes by hand.\n\nI worked with the team on what happened next. When a student came back to a topic like photosynthesis, how would they find it again? That question connected my work on notebooks, handwriting and search.",
   },
   wizpay: {
     overview: {
-      context: "It’s not every day you get to design the core flow of a B2B payments system from scratch. Wizpay was that chance for me, and these are some of the small stories, endless questions and little victories along the way.",
-      contribution: "",
+      context: "A sales rep could choose how a retailer planned to pay while taking the order. Collecting the money might happen days later. In five interviews, that distinction came into focus.",
+      contribution: "I brought this back to the team as we designed WizPay. The order needed to record the payment method, and reps needed a separate way to collect money when it was due. That shaped where the payment form could open and what it needed to know about the order.",
       companyIntro: {
         heading: "What does WizCommerce do?",
         body: "WizCommerce brings wholesale selling into one connected platform—from showing products and building quotes to taking orders and collecting payments. Sales reps and buyers work with the same customer, pricing, and inventory information, whether they’re at a trade show, in the field, or ordering online.",
@@ -339,7 +338,7 @@ export const folioProjects: Record<FolioProjectId, FolioProject> = {
     heroImage: { expandable: true, src: "/assets/invoice-folio/wizpay-case-study/hero-338-25712.png", width: 1568, height: 1295, alt: "WizPay transaction dashboard with payment details, upcoming payments, invoice collection and refunds" },
     id: "wizpay", cardTitle: "WizPay", cardMeta: "Payments / Product design",
     title: "WizPay", year: "Oct 2024–Mar 2025", tone: "charcoal",
-    headline: "Designing Wizpay\nB2B payments solution for wholesalers",
+    headline: "WizPay\nCollecting payments for wholesalers",
     description: "WizCommerce is a B2B commerce platform for wholesalers. It brings product browsing, order taking, quotes and payments into one place, helping sales reps work with retailers through the sales process.",
     services: ["Product design", "Payment workflows", "Cross-device design"],
     media: wizPayStory, folderPreviews: [],
@@ -418,7 +417,7 @@ export const folioProjects: Record<FolioProjectId, FolioProject> = {
   "personal-letter": {
     id: "personal-letter", title: "Vibing is the process", cardTitle: "A letter from Parth", cardMeta: "Personal",
     year: "", tone: "charcoal", services: [], folderPreviews: [], previewMedia: [],
-    description: "Design found me when I wasn’t really looking for it. I started with a poster for my college’s technical fest and eventually designed its logo. There was something about being able to shape how it looked that felt like control. Something just made sense to me, even before I could explain why.\n\nDuring Covid, while studying at IIIT Nagpur, I realised I was more drawn to design than code. I’ve mostly followed my gut since. Seeing what people make—on Twitter and everywhere else—keeps me curious. I want to get better at turning ideas into things, and develop the judgment to give them a direction of my own.\n\nOutside work, I’m drawn to travel, photography, and cinematography. That last one is still mostly unexplored, but I hope to give it some creative brain cells soon.\n\nAs I grow, I want to care more deeply about whatever I give my time to. That could mean a basic mountaineering course, getting my hands into pottery, or finding a badass team to build with.",
+    description: "Design found me when I wasn’t really looking for it. I started with a poster for my college’s technical fest and eventually designed its logo. There was something about being able to shape how it looked that felt like control. Something just made sense to me, even before I could explain why.\n\nDuring Covid, while studying at IIIT Nagpur, I realised I was more drawn to design than code. I’ve mostly followed my gut since. Seeing what people make—on Twitter and everywhere else—keeps me curious. I want to get better at turning ideas into things, and develop the judgment to give them a direction of my own.\n\nMaking things is getting easier. I think intention matters even more now. The web has enough noise. I want to build things that push back against it.\n\nOutside work, I’m drawn to travel, photography, and cinematography. That last one is still mostly unexplored, but I hope to give it some creative brain cells soon.\n\nAs I grow, I want to care more deeply about whatever I give my time to. That could mean a basic mountaineering course, getting my hands into pottery, or finding a badass team to build with.",
     media: [
       ...personalPhotos.map(([name, alt]): FolioProjectMedia => ({ kind: "image", src: `/assets/desk-photos/${name}.png`, alt, ratio: "portrait", fit: "contain" })),
     ],

@@ -279,7 +279,6 @@ export function InvoiceFolioHome({ reducedMotion }: InvoiceFolioHomeProps) {
     >
       <div aria-hidden="true" className="folio-scroll-blur" />
       <WallLightShader
-        blossom
         paused={activeFolioProjectId !== null && !["superr-paper", "wizpay", "wiz-commerce", "journal-desk"].includes(activeFolioProjectId)}
         glowColor="#ef96b7"
         glowStrength={0}

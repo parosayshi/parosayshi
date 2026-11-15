@@ -14,7 +14,7 @@ interface WallLightShaderProps {
 type MovingLeaf = {
   basePosition: THREE.Vector3;
   baseRotation: number;
-  mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  mesh: THREE.Object3D;
   phase: number;
   strength: number;
 };
@@ -247,7 +247,7 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
       return undefined;
     }
 
-    const branchGeometry = new THREE.CylinderGeometry(1, 1, 1, 7, 1, false);
+    const branchGeometry = new THREE.CylinderGeometry(0.72, 1, 1, 8, 1, false);
     const branchMaterial = new THREE.MeshBasicMaterial({ color: 0x15110e });
     branchMaterial.colorWrite = false;
     branchMaterial.depthWrite = false;
@@ -292,27 +292,26 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
       z: number,
       depth: number,
     ) => {
-      const count = blossom ? (depth === 0 ? 4 : 3) : (depth === 0 ? 5 : 3);
+      const count = blossom ? (depth === 0 ? 4 : 3) : (depth === 0 ? 10 : 6);
+      const clusterPhase = random() * Math.PI * 2;
       for (let index = 0; index < count; index += 1) {
-        const angle = branchAngle + (random() - 0.5) * 2.1;
-        const distance = 0.16 + random() * 0.52;
+        const angle = branchAngle + (index % 2 === 0 ? -1 : 1) * (0.25 + random() * 1.05);
+        const distance = 0.12 + random() * 0.7;
         const width = blossom ? 0.34 + random() * 0.32 : 0.48 + random() * 0.4;
-        const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+        const leaf = new THREE.Object3D();
         leaf.position.set(
           point.x + Math.cos(angle) * distance,
           point.y + Math.sin(angle) * distance,
           z + 0.08 + random() * 0.48,
         );
-        leaf.scale.set(width, width * (blossom ? (0.8 + random() * 0.2) : (0.3 + random() * 0.12)), 1);
+        leaf.scale.set(width, width * (blossom ? (0.8 + random() * 0.2) : (0.44 + random() * 0.14)), 1);
         leaf.rotation.z = angle + (random() - 0.5) * 0.55;
-        leaf.castShadow = true;
-        if (blossom) leaf.layers.enable(1);
         parent.add(leaf);
         movingLeaves.push({
           basePosition: leaf.position.clone(),
           baseRotation: leaf.rotation.z,
           mesh: leaf,
-          phase: random() * Math.PI * 2,
+          phase: clusterPhase + (random() - 0.5) * 0.6,
           strength: 0.075 + random() * 0.05,
         });
       }
@@ -372,7 +371,7 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
         new THREE.Vector2(0, 0),
         definition.angle,
         definition.length,
-        0.03,
+        0.145,
         5,
         2.6 + index * 0.22,
       );
@@ -385,6 +384,14 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
       });
       scene.add(canopy);
     });
+
+    // The leaves share geometry and material. Submit the entire crown in one shadow draw.
+    const foliage = new THREE.InstancedMesh(leafGeometry, leafMaterial, movingLeaves.length);
+    foliage.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    foliage.frustumCulled = false;
+    foliage.castShadow = true;
+    if (blossom) foliage.layers.enable(1);
+    scene.add(foliage);
 
     let motionTime = 0;
     let previousFrameTime: number | null = null;
@@ -408,6 +415,7 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
           + Math.sin(time * 0.46 + canopy.phase) * 0.05
           + gustArrival * 0.025;
       });
+      movingCanopies.forEach(({ group }) => group.updateWorldMatrix(true, false));
       movingLeaves.forEach((leaf, index) => {
         const flutter = Math.sin(time * (1.18 + (index % 7) * 0.045) + leaf.phase);
         const tremble = Math.sin(time * 2.1 + leaf.phase * 1.31) * 0.24;
@@ -417,7 +425,10 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
           + (flutter + tremble) * leaf.strength * airPulse;
         leaf.mesh.position.x = leaf.basePosition.x + flutter * 0.026 * airPulse;
         leaf.mesh.position.y = leaf.basePosition.y + tremble * 0.02 * airPulse;
+        leaf.mesh.updateWorldMatrix(false, false);
+        foliage.setMatrixAt(index, leaf.mesh.matrixWorld);
       });
+      foliage.instanceMatrix.needsUpdate = true;
       renderer.render(scene, camera);
     };
 
@@ -523,6 +534,7 @@ export function WallLightShader({ paused = false, blossom = false, glowColor, gl
       receiverMaterial.dispose();
       branchGeometry.dispose();
       branchMaterial.dispose();
+      foliage.dispose();
       leafGeometry.dispose();
       leafMaterial.dispose();
       leafTexture.dispose();
